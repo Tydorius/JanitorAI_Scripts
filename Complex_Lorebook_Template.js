@@ -15,11 +15,75 @@
  * Compatible with Nine API v1
  */
 
+// ===== FEATURE TOGGLE CONFIGURATION =====
+// Set these to true/false to enable/disable specific components
+// This allows you to easily turn features on/off without deleting code
+const FEATURES = {
+    // Core lorebook system (ALWAYS KEEP TRUE - disabling breaks everything)
+    LOREBOOK: true,
+
+    // Timeline events based on day counter and stats
+    TIMELINE_EVENTS: true,
+
+    // Stat parsing from AI responses
+    STAT_TRACKING: true,
+
+    // World reactions to player actions via keywords
+    KEYWORD_REACTIONS: true,
+
+    // Cascading lore activation (lore entries triggering other entries)
+    CASCADING_TRIGGERS: true,
+
+    // Debugging output to help troubleshoot issues
+    DEBUG_MODE: false
+};
+
+/**
+ * SAFE COMPONENT REMOVAL GUIDE:
+ *
+ * Instead of deleting code blocks, use the toggles above to disable features.
+ * If you must remove code sections, follow this guide:
+ *
+ * TO DISABLE TIMELINE EVENTS:
+ * - Set TIMELINE_EVENTS: false above, OR
+ * - Delete lines 311-384 (the "DYNAMIC TIMELINE EVENTS" section)
+ *
+ * TO DISABLE STAT TRACKING:
+ * - Set STAT_TRACKING: false above, OR
+ * - Delete lines 318-321 (getStat() calls) and any if(stat !== null) blocks
+ *
+ * TO DISABLE KEYWORD REACTIONS:
+ * - Set KEYWORD_REACTIONS: false above, OR
+ * - Delete lines 358-383 ("KEYWORD-BASED REACTIONS" section)
+ *
+ * TO DISABLE CASCADING TRIGGERS:
+ * - Set CASCADING_TRIGGERS: false above, OR
+ * - Delete lines 279-296 ("Second pass: Recursive activation" section)
+ * - Remove 'triggers: [...]' arrays from all lore entries
+ *
+ * TO SIMPLIFY LOREBOOK ENTRIES:
+ * - Remove 'filters', 'probability', 'minMessages' fields from entries
+ * - Keep only 'keywords', 'priority', 'personality', and 'scenario'
+ *
+ * CRITICAL SECTIONS (NEVER DELETE):
+ * - Lines 78-81 (Core system context access)
+ * - Lines 91-99 (getStat utility function structure)
+ * - Lines 262-277 (First pass activation engine)
+ * - Lines 298-309 (Apply lore section)
+ *
+ * WARNING: Always test after modifications. Syntax errors will break the entire script.
+ */
+
 // === CORE SYSTEM (DO NOT MODIFY) ===
 // These lines access the chat context and are required for the script to function
 const lastMessage = context.chat.last_message.toLowerCase();
 const lastResponse = context.chat.last_message;
 const messageCount = context.chat.message_count;
+
+// Quick exit if lorebook is disabled (should never happen, but safety check)
+if (!FEATURES.LOREBOOK) {
+    return; // Exit script entirely - no lorebook functionality
+}
 
 // === UTILITY FUNCTIONS (DO NOT MODIFY STRUCTURE) ===
 // This function safely extracts numerical stats from AI responses
@@ -213,7 +277,8 @@ loreEntries.forEach(entry => {
 });
 
 // Second pass: Recursive activation (triggered by other entries)
-if (triggeredKeywords.length > 0) {
+// Only run if cascading triggers are enabled
+if (FEATURES.CASCADING_TRIGGERS && triggeredKeywords.length > 0) {
     loreEntries.forEach(entry => {
         if (activatedEntries.includes(entry)) return;
         if (messageCount < entry.minMessages) return;
@@ -247,14 +312,16 @@ activatedEntries
 // This section creates events based on parsed stats from the AI's responses
 // MODIFY the stat names to match your character card's format
 
-// Attempt to read key stats - MODIFY these stat names as needed
-const day = getStat('Day', lastResponse);                    // MODIFY: Change 'Day' to your day counter stat
-const power = getStat('Power', lastResponse);               // MODIFY: Change to your power stat name
-const influence = getStat('Influence', lastResponse);       // MODIFY: Change to your influence stat name
-const threatLevel = getStat('Threat Level', lastResponse);  // MODIFY: Change to your threat stat name
+// Only proceed if timeline events are enabled
+if (FEATURES.TIMELINE_EVENTS || FEATURES.STAT_TRACKING) {
+    // Attempt to read key stats - MODIFY these stat names as needed
+    const day = FEATURES.STAT_TRACKING ? getStat('Day', lastResponse) : null;                    // MODIFY: Change 'Day' to your day counter stat
+    const power = FEATURES.STAT_TRACKING ? getStat('Power', lastResponse) : null;               // MODIFY: Change to your power stat name
+    const influence = FEATURES.STAT_TRACKING ? getStat('Influence', lastResponse) : null;       // MODIFY: Change to your influence stat name
+    const threatLevel = FEATURES.STAT_TRACKING ? getStat('Threat Level', lastResponse) : null;  // MODIFY: Change to your threat stat name
 
-// Only run timeline logic if we can find the day count
-if (day !== null) {
+    // Only run timeline logic if timeline events are enabled and we can find the day count
+    if (FEATURES.TIMELINE_EVENTS && day !== null) {
 
     // === EARLY TIMELINE EVENTS (MODIFY THESE) ===
     if (day === 1 && messageCount <= 2) {
@@ -290,32 +357,50 @@ if (day !== null) {
 
     // === KEYWORD-BASED REACTIONS (MODIFY THESE) ===
     // These react to specific words or actions in the AI's last response
-    const lastResponseLower = lastResponse.toLowerCase();
+    // Only proceed if keyword reactions are enabled
+    if (FEATURES.KEYWORD_REACTIONS) {
+        const lastResponseLower = lastResponse.toLowerCase();
 
-    // MODIFY: Change these keyword arrays to match your world's concepts
-    const militaryKeywords = ['army', 'soldiers', 'attack', 'invasion', 'military'];
-    if (militaryKeywords.some(keyword => lastResponseLower.includes(keyword))) {
-        context.character.scenario += ' [World Reaction] Your military activities have not gone unnoticed. Enemy forces begin mobilizing in response.';
-        context.character.personality += ', aware that military confrontation is escalating';
+        // MODIFY: Change these keyword arrays to match your world's concepts
+        const militaryKeywords = ['army', 'soldiers', 'attack', 'invasion', 'military'];
+        if (militaryKeywords.some(keyword => lastResponseLower.includes(keyword))) {
+            context.character.scenario += ' [World Reaction] Your military activities have not gone unnoticed. Enemy forces begin mobilizing in response.';
+            context.character.personality += ', aware that military confrontation is escalating';
+        }
+
+        const diplomacyKeywords = ['alliance', 'treaty', 'negotiate', 'diplomacy', 'ambassador'];
+        if (diplomacyKeywords.some(keyword => lastResponseLower.includes(keyword))) {
+            context.character.scenario += ' [World Reaction] Your diplomatic overtures have shifted the political balance of power in the region.';
+        }
+
+        const magicKeywords = ['spell', 'magic', 'ritual', 'enchantment', 'arcane'];
+        if (magicKeywords.some(keyword => lastResponseLower.includes(keyword))) {
+            context.character.scenario += ' [World Reaction] The magical energies you\'ve unleashed ripple through the ley lines, alerting sensitive mages to your activities.';
+        }
+
+        // MODIFY: Add your own keyword reaction categories here
+        // Examples: economy, religion, exploration, research, etc.
     }
-
-    const diplomacyKeywords = ['alliance', 'treaty', 'negotiate', 'diplomacy', 'ambassador'];
-    if (diplomacyKeywords.some(keyword => lastResponseLower.includes(keyword))) {
-        context.character.scenario += ' [World Reaction] Your diplomatic overtures have shifted the political balance of power in the region.';
-    }
-
-    const magicKeywords = ['spell', 'magic', 'ritual', 'enchantment', 'arcane'];
-    if (magicKeywords.some(keyword => lastResponseLower.includes(keyword))) {
-        context.character.scenario += ' [World Reaction] The magical energies you\'ve unleashed ripple through the ley lines, alerting sensitive mages to your activities.';
-    }
-
-    // MODIFY: Add your own keyword reaction categories here
-    // Examples: economy, religion, exploration, research, etc.
-}
+    } // End of TIMELINE_EVENTS || STAT_TRACKING check
 
 // === DEBUGGING (OPTIONAL) ===
-// Uncomment the line below to see which lore entries are activating
-// context.character.scenario += ' [DEBUG: Activated ' + activatedEntries.length + ' entries: ' + activatedEntries.map(e => e.category).join(', ') + ']';
+// Debug output is now controlled by the DEBUG_MODE toggle above
+if (FEATURES.DEBUG_MODE) {
+    context.character.scenario += ' [DEBUG: Activated ' + activatedEntries.length + ' entries: ' + activatedEntries.map(e => e.category).join(', ') + ']';
+
+    // Additional debug information
+    if (FEATURES.STAT_TRACKING) {
+        const debugDay = getStat('Day', lastResponse);
+        const debugPower = getStat('Power', lastResponse);
+        if (debugDay !== null || debugPower !== null) {
+            context.character.scenario += ' [DEBUG STATS: Day=' + (debugDay || 'null') + ', Power=' + (debugPower || 'null') + ']';
+        }
+    }
+
+    if (FEATURES.CASCADING_TRIGGERS && triggeredKeywords.length > 0) {
+        context.character.scenario += ' [DEBUG TRIGGERS: ' + triggeredKeywords.join(', ') + ']';
+    }
+}
 
 // === TEMPLATE USAGE GUIDE ===
 /*
@@ -364,4 +449,17 @@ BEST PRACTICES:
 - Use categories for organization and debugging
 
 Remember: This is a template - make it your own!
+
+FEATURE TOGGLE QUICK REFERENCE:
+- LOREBOOK: Core system (always keep true)
+- TIMELINE_EVENTS: Day-based story events
+- STAT_TRACKING: Parse numbers from AI responses
+- KEYWORD_REACTIONS: World responds to player actions
+- CASCADING_TRIGGERS: Lore entries activate other lore
+- DEBUG_MODE: Shows activation information
+
+To disable a feature: Change its value to 'false' in the FEATURES object at the top.
+To permanently remove: Use the removal guide in the header comments.
+Disclaimer: Comments added by an LLM after the fact. Line numbers and other details
+SHOULD be correct, but I've not had time to fully proof.
 */
