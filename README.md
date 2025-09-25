@@ -4,6 +4,8 @@ A sophisticated system for creating dynamic, responsive lorebooks in Janitor AI 
 
 ## Table of Contents
 - [Overview](#overview)
+- [Quick Start: Feature Toggles](#quick-start-feature-toggles)
+- [Safe Component Removal Guide](#safe-component-removal-guide)
 - [How It Works](#how-it-works)
 - [System Architecture](#system-architecture)
 - [Lore Entry Structure](#lore-entry-structure)
@@ -23,6 +25,138 @@ This template creates a dynamic lorebook system that goes far beyond simple keyw
 - **Priority System**: Important lore takes precedence over minor details
 - **Smart Filtering**: Conditional activation based on context
 - **Memory System**: The world "remembers" and reacts to player actions
+
+**NEW: Feature Toggle System** - Each component can now be easily enabled/disabled without deleting code, making the template more user-friendly and customizable.
+
+## Quick Start: Feature Toggles
+
+The template now includes a simple toggle system at the top of the file that lets you enable/disable components without touching any complex code:
+
+```javascript
+const FEATURES = {
+    LOREBOOK: true,           // Core system (always keep true)
+    TIMELINE_EVENTS: true,    // Day-based story events
+    STAT_TRACKING: true,      // Parse numbers from AI responses
+    KEYWORD_REACTIONS: true,  // World responds to player actions
+    CASCADING_TRIGGERS: true, // Lore entries activate other lore
+    DEBUG_MODE: false         // Shows activation information
+};
+```
+
+### Using the Toggles
+
+**To disable a feature**: Change its value from `true` to `false`
+- Example: `TIMELINE_EVENTS: false` turns off all day-based events
+
+**For beginners**: Start with only `LOREBOOK: true` and `DEBUG_MODE: true`, then gradually enable other features as you become comfortable with the system.
+
+**For advanced users**: Use all features for maximum world reactivity.
+
+### Recommended Toggle Combinations
+
+**Simple Lorebook (Beginners)**:
+```javascript
+LOREBOOK: true,
+TIMELINE_EVENTS: false,
+STAT_TRACKING: false,
+KEYWORD_REACTIONS: false,
+CASCADING_TRIGGERS: false,
+DEBUG_MODE: true
+```
+
+**Intermediate Setup**:
+```javascript
+LOREBOOK: true,
+TIMELINE_EVENTS: true,
+STAT_TRACKING: true,
+KEYWORD_REACTIONS: false,
+CASCADING_TRIGGERS: true,
+DEBUG_MODE: false
+```
+
+**Full Featured (Advanced)**:
+```javascript
+LOREBOOK: true,
+TIMELINE_EVENTS: true,
+STAT_TRACKING: true,
+KEYWORD_REACTIONS: true,
+CASCADING_TRIGGERS: true,
+DEBUG_MODE: false
+```
+
+## Safe Component Removal Guide
+
+If you prefer to permanently remove code rather than use toggles, follow this guide. **WARNING**: Always make a backup before deleting code.
+
+### What Each Component Does
+
+- **Timeline Events**: Adds story events on specific days (lines 311-384)
+- **Stat Tracking**: Reads numbers from AI responses for reactions (lines 318-321 + related if-blocks)
+- **Keyword Reactions**: World responds to player actions with specific words (lines 358-383)
+- **Cascading Triggers**: Lore entries can activate other lore entries (lines 279-296 + triggers arrays)
+
+### Safe Removal Instructions
+
+**To Remove Timeline Events**:
+1. **Safe method**: Set `TIMELINE_EVENTS: false`
+2. **Permanent removal**: Delete lines 311-384 (entire "DYNAMIC TIMELINE EVENTS" section)
+
+**To Remove Stat Tracking**:
+1. **Safe method**: Set `STAT_TRACKING: false`
+2. **Permanent removal**:
+   - Delete lines 318-321 (the `getStat()` calls)
+   - Delete any `if (stat !== null)` blocks
+   - Remove stat-based conditions from timeline events
+
+**To Remove Keyword Reactions**:
+1. **Safe method**: Set `KEYWORD_REACTIONS: false`
+2. **Permanent removal**: Delete lines 358-383 ("KEYWORD-BASED REACTIONS" section)
+
+**To Remove Cascading Triggers**:
+1. **Safe method**: Set `CASCADING_TRIGGERS: false`
+2. **Permanent removal**:
+   - Delete lines 279-296 ("Second pass: Recursive activation" section)
+   - Remove all `triggers: [...]` arrays from lore entries
+   - Remove `triggeredKeywords` related code
+
+**To Simplify Lore Entries**:
+Remove these optional fields from lore entries while keeping the basic structure:
+- `filters: {...}` - conditional activation
+- `probability: 0.X` - random activation chance
+- `minMessages: X` - minimum chat length requirement
+- `triggers: [...]` - cascading activation
+
+Keep these essential fields:
+- `keywords: [...]` - what triggers the lore
+- `priority: X` - activation order
+- `personality: "..."` - character trait additions
+- `scenario: "..."` - world context additions
+
+### Critical Sections (NEVER DELETE)
+
+These sections are essential and removing them will break the script:
+- **Lines 78-81**: Context access and core variables
+- **Lines 91-99**: `getStat()` function (even if you don't use stats)
+- **Lines 262-277**: First pass activation engine
+- **Lines 298-309**: Lore application to character
+
+### Testing After Changes
+
+After making any changes:
+1. Enable `DEBUG_MODE: true` to see what's working
+2. Test with simple keywords to verify basic functionality
+3. Check that the AI receives lore properly
+4. Gradually test more complex features
+
+### Syntax Error Prevention
+
+Common mistakes when removing code:
+- **Missing commas**: Each lore entry needs a comma after it (except the last one)
+- **Unmatched brackets**: Every `{` needs a matching `}`
+- **Incomplete deletions**: Don't leave partial code blocks
+- **Variable references**: Don't delete variables that other code still uses
+
+If you get errors, the debugging section will help identify issues.
 
 ## How It Works
 
@@ -374,21 +508,30 @@ The Script system automatically triggers events and world reactions based on the
    - Ensure exact formatting: `**Stat Name:** 50%`
    - Check for extra spaces or formatting characters
    - Verify stat names match those in your Script exactly
+   - **Toggle Check**: Ensure `STAT_TRACKING: true` if using stats
 
 2. **Timeline Events Not Triggering:**
    - Confirm Day counter is advancing appropriately
    - Check that day advancement follows logical action progression
    - Ensure status block appears at the end of every response
+   - **Toggle Check**: Ensure `TIMELINE_EVENTS: true`
 
 3. **Inconsistent Stat Updates:**
    - Create clear rules for when stats change
    - Define magnitude of stat changes for different actions
    - Consider stat interactions and realistic progression curves
+   - **Debug Tip**: Enable `DEBUG_MODE: true` to see parsed stat values
 
 4. **Status Block Formatting Issues:**
    - Use consistent markdown formatting (`**bold**`)
    - Maintain exact spacing and punctuation
    - Place status block at the very end of responses
+
+5. **Features Not Working After Toggle Changes:**
+   - Double-check toggle spelling and syntax
+   - Ensure you saved the file after making changes
+   - Verify commas and brackets are correctly placed
+   - **Quick Test**: Enable `DEBUG_MODE: true` to see what's activating
 
 ### Token Management for Stat Tracking
 
@@ -586,30 +729,58 @@ The system remembers previous activations and can build ongoing narratives based
 - Increase `minMessages` values for complex lore
 - Make keywords more specific
 - Use filters to prevent unwanted combinations
+- **Quick Fix**: Disable `CASCADING_TRIGGERS` temporarily
 
 **Important Lore Not Triggering**
 - Check keyword spelling and variations
 - Verify filters aren't too restrictive
 - Ensure priority is high enough (8-11 for important lore)
+- **Debug**: Enable `DEBUG_MODE: true` to see which entries activate
 
 **Timeline Events Not Working**
 - Verify stat name matches your character card exactly
 - Check that getStat() regex matches your formatting
 - Enable debugging to see if stats are being parsed
+- **Toggle Check**: Ensure both `TIMELINE_EVENTS: true` and `STAT_TRACKING: true`
 
 **Cascading Not Working**
 - Ensure trigger words appear in target entry keywords
 - Check that both entries can activate (message count, filters)
 - Verify trigger words are spelled correctly
+- **Toggle Check**: Ensure `CASCADING_TRIGGERS: true`
+
+**Features Suddenly Stopped Working**
+- Check if you accidentally changed a toggle to `false`
+- Verify no syntax errors were introduced during editing
+- Ensure the FEATURES object syntax is correct
+- **Reset Method**: Copy the original FEATURES configuration from the template
+
+**Script Not Loading at All**
+- Check for JavaScript syntax errors (missing commas, brackets)
+- Verify the FEATURES object has correct syntax
+- Ensure no essential code sections were accidentally deleted
+- **Recovery**: Restore from backup or re-download the template
 
 ### Debugging Mode
 
-Uncomment the debugging line at the end of the script:
+**New Easy Method**: Set `DEBUG_MODE: true` in the FEATURES configuration at the top of the script.
+
+This will show:
+- Which lore entries are activating and their categories
+- Current stat values being parsed (if stat tracking is enabled)
+- Triggered keywords from cascading activation (if cascading is enabled)
+
+**Old Method**: Uncomment the debugging line at the end of the script:
 ```javascript
 context.character.scenario += ' [DEBUG: Activated ' + activatedEntries.length + ' entries: ' + activatedEntries.map(e => e.category).join(', ') + ']';
 ```
 
-This shows which lore entries are activating and helps identify issues.
+**Debug Output Examples**:
+- `[DEBUG: Activated 3 entries: nation_example, org_mages, race_elf]`
+- `[DEBUG STATS: Day=15, Power=45]`
+- `[DEBUG TRIGGERS: magic, politics, power]`
+
+Use this information to identify why certain lore isn't triggering or why too much is activating at once.
 
 ### Performance Tips
 
@@ -617,6 +788,22 @@ This shows which lore entries are activating and helps identify issues.
 - Use specific keywords rather than common words
 - Set appropriate `minMessages` to prevent early overwhelm
 - Group related lore with similar priorities
+
+---
+
+## Version History
+
+**v2.0 - Toggle System Update**
+- Added FEATURES toggle configuration for easy component control
+- Added comprehensive safe removal instructions
+- Enhanced debugging with toggle-controlled debug mode
+- Added detailed troubleshooting for toggle-related issues
+- Improved beginner-friendliness with graduated complexity options
+
+**v1.0 - Original Template**
+- Full-featured complex lorebook system
+- All components enabled by default
+- Manual code editing required for customization
 
 ---
 
