@@ -460,6 +460,8 @@ FEATURE TOGGLE QUICK REFERENCE:
 
 To disable a feature: Change its value to 'false' in the FEATURES object at the top.
 To permanently remove: Use the removal guide in the header comments.
-Disclaimer: Comments added by an LLM after the fact. Line numbers and other details
-SHOULD be correct, but I've not had time to fully proof.
 */
+
+// === SCRIPT END ===
+// This closing bracket ensures proper syntax completion
+}

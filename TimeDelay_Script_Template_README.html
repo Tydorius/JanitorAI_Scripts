@@ -1,0 +1,639 @@
+<strong>TimeDelay Script Template</strong><br>
+<br>
+A progressive disclosure system for Janitor AI Scripts that reveals information over time through message count thresholds, hour-based timeline progression, canon count tracking, and context-aware token management.<br>
+<br>
+<strong>Table of Contents</strong><br>
+- <a href="#overview">Overview</a><br>
+- <a href="#core-concepts">Core Concepts</a><br>
+- <a href="#feature-configuration">Feature Configuration</a><br>
+- <a href="#canon-database-structure">Canon Database Structure</a><br>
+- <a href="#witness-and-location-system">Witness and Location System</a><br>
+- <a href="#token-management">Token Management</a><br>
+- <a href="#timeline-structure">Timeline Structure</a><br>
+- <a href="#hidden-clue-system">Hidden Clue System</a><br>
+- <a href="#conditional-events">Conditional Events</a><br>
+- <a href="#character-card-requirements">Character Card Requirements</a><br>
+- <a href="#example-scenario">Example Scenario</a><br>
+- <a href="#best-practices">Best Practices</a><br>
+- <a href="#troubleshooting">Troubleshooting</a><br>
+<br>
+<strong id="overview">Overview</strong><br>
+<br>
+This template creates a progressive disclosure system where canonical information is revealed gradually over time, preventing spoilers and maintaining mystery engagement. The system uses multiple complementary mechanisms:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- <strong>Message Count Thresholds</strong>: Clues unlock at specific message counts (5, 10, 15...)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- <strong>Hour-Based Timeline</strong>: Events trigger at specific hours (0-24 hours)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- <strong>Canon Count Tracking</strong>: Cumulative count of clues unlocked, affecting what new information is available<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- <strong>Drop-In/Drop-Out System</strong>: Witnesses and locations only activate when mentioned in conversation<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- <strong>Context-Aware Token Management</strong>: Reduces detail of previously-discovered clues to manage token budget<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- <strong>Hidden Clue Embedding</strong>: Critical clues hidden within observational details, only revealed when sufficient context established<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- <strong>Conditional Events</strong>: Story branches based on player actions (e.g., robbery success vs prevention)<br>
+<br>
+This template is ideal for:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Mystery scenarios where clues must be discovered progressively<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Investigation stories with multiple suspects and locations<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Plot-twist narratives where early information would spoil later revelations<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Stories with multiple characters/witnesses who provide information over time<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Scenarios requiring strategic token management for long investigations<br>
+<br>
+<strong id="core-concepts">Core Concepts</strong><br>
+<br>
+<strong>Progressive Disclosure Principle</strong><br>
+<br>
+The core concept is simple: Information is only provided to the AI when appropriate conditions are met. This prevents:<br>
+<br>
+<strong>Premature Spoilers</strong>: Early clues don't reveal later plot developments<br>
+<strong>Information Overload</strong>: Not all available context is provided at once<br>
+<strong>Token Overflow</strong>: Token budget manages how much detail is provided<br>
+<strong>Cascading Discoveries</strong>: New clues unlock related information<br>
+<br>
+<strong>Three-Threshold System</strong><br>
+<br>
+Each canon entry has three thresholds that must ALL be met before activation:<br>
+<br>
+1. <strong>minMessages</strong>: Minimum message count before entry can activate<br>
+2. <strong>minHour</strong>: Minimum hour progression before entry can activate<br>
+3. <strong>minCanon</strong>: Minimum canon count before entry can activate<br>
+<br>
+Example: A witness testimony might require:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- minMessages: 5 (Player has interacted enough to establish investigation)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- minHour: 5 (Timeline has progressed to appropriate time)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- minCanon: 4 (Player has discovered enough foundational clues first)<br>
+<br>
+<strong>Canonical Information Format</strong><br>
+<br>
+All canonical information uses this format:<br>
+<br>
+[CANON]: [Information content]<br>
+<br>
+This format is:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Unmistakable to LLM (clearly denotes official truth)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Searchable in script output (for debugging)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Consistent across all information types<br>
+<br>
+<strong>Canon Count Stat</strong><br>
+<br>
+The character card must track a "Canon Count" statistic:<br>
+<br>
+<strong>Canon Count:</strong> [X]<br>
+<br>
+This cumulative count tracks how many canonical entries have been unlocked, affecting:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Which clues are now available<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- How cooperative witnesses become<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Which events trigger<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Token budget allocation<br>
+<br>
+<strong id="feature-configuration">Feature Configuration</strong><br>
+<br>
+The template includes a feature toggle system for easy component control:<br>
+<br>
+<code>const FEATURES = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;LOREBOOK: true,              // Core system (always true)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;TIMELINE_EVENTS: true,      // Hour-based events<br>
+&nbsp;&nbsp;&nbsp;&nbsp;STAT_TRACKING: true,          // Canon Count and Hour<br>
+&nbsp;&nbsp;&nbsp;&nbsp;PROGRESSIVE_DISCLOSURE: true, // Message-based thresholds<br>
+&nbsp;&nbsp;&nbsp;&nbsp;DROP_IN_OUT: true,          // Witness/location system<br>
+&nbsp;&nbsp;&nbsp;&nbsp;CONTEXT_AWARE_BUDGETING: true, // Token management<br>
+&nbsp;&nbsp;&nbsp;&nbsp;HIDDEN_CLUES: true,         // Hidden clue embedding<br>
+&nbsp;&nbsp;&nbsp;&nbsp;CONDITIONAL_EVENTS: true,   // Conditional story branches<br>
+&nbsp;&nbsp;&nbsp;&nbsp;DEBUG_MODE: false             // Debug output<br>
+};</code><br>
+<br>
+<strong>Recommended Toggle Combinations</strong><br>
+<br>
+<strong>Basic Progressive Disclosure:</strong><br>
+<br>
+LOREBOOK: true,<br>
+TIMELINE_EVENTS: false,<br>
+STAT_TRACKING: true,<br>
+PROGRESSIVE_DISCLOSURE: true,<br>
+DROP_IN_OUT: false,<br>
+CONTEXT_AWARE_BUDGETING: false,<br>
+HIDDEN_CLUES: false,<br>
+CONDITIONAL_EVENTS: false,<br>
+DEBUG_MODE: false<br>
+<br>
+<strong>Full Featured Mystery:</strong><br>
+<br>
+LOREBOOK: true,<br>
+TIMELINE_EVENTS: true,<br>
+STAT_TRACKING: true,<br>
+PROGRESSIVE_DISCLOSURE: true,<br>
+DROP_IN_OUT: true,<br>
+CONTEXT_AWARE_BUDGETING: true,<br>
+HIDDEN_CLUES: true,<br>
+CONDITIONAL_EVENTS: true,<br>
+DEBUG_MODE: false<br>
+<br>
+<strong id="canon-database-structure">Canon Database Structure</strong><br>
+<br>
+The canon database contains all canonical information revealed progressively. Each entry includes:<br>
+<br>
+<code>{<br>
+&nbsp;&nbsp;&nbsp;&nbsp;id: 'unique_identifier',           // Internal ID<br>
+&nbsp;&nbsp;&nbsp;&nbsp;keywords: ['trigger1', 'trigger2'], // Keywords that activate entry<br>
+&nbsp;&nbsp;&nbsp;&nbsp;importance: 10.0,                  // Float for tiebreaking (supports 1.5, 2.7, etc.)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;minMessages: 5,                   // Minimum messages required<br>
+&nbsp;&nbsp;&nbsp;&nbsp;minHour: 5,                         // Minimum hour required<br>
+&nbsp;&nbsp;&nbsp;&nbsp;minCanon: 4,                       // Minimum canon count required<br>
+&nbsp;&nbsp;&nbsp;&nbsp;full: {                              // Full detail version<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scenario: '[CANON]: Complete information...'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;summary: {                            // Summary version (token budget)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scenario: '[CANON]: Condensed information...'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+&nbsp;&nbsp;&nbsp;&nbsp;bullet: {                              // Bullet version (token budget)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scenario: '[CANON]: Brief information...'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}</code><br>
+<br>
+<strong>Field Explanations</strong><br>
+<br>
+- <strong>id</strong>: Unique identifier for internal organization and debugging<br>
+- <strong>keywords</strong>: Words/phrases that trigger this entry when mentioned<br>
+- <strong>importance</strong>: Float value (1.0-11.0) determining priority; higher values activate first and resist token reduction<br>
+- <strong>minMessages</strong>: Message count threshold; entry won't activate until this many messages have occurred<br>
+- <strong>minHour</strong>: Hour threshold; entry won't activate until timeline reaches this hour<br>
+- <strong>minCanon</strong>: Canon count threshold; entry won't activate until player has unlocked this many clues<br>
+- <strong>full.scenario</strong>: Complete detail version with all information<br>
+- <strong>summary.scenario</strong>: Condensed version for token management<br>
+- <strong>bullet.scenario</strong>: Minimal version for token management<br>
+<br>
+<strong>Importance Scale</strong><br>
+<br>
+Use this scale for assigning importance:<br>
+<br>
+- <strong>11.0</strong>: Critical revelations (major plot twists, final clues)<br>
+- <strong>10.0-9.5</strong>: Important events (robbery, arrests, key testimonies)<br>
+- <strong>8.5-9.0</strong>: Significant information (witness statements, bank details)<br>
+- <strong>7.0-8.5</strong>: Useful details (security assessments, background information)<br>
+- <strong>5.0-7.0</strong>: Context information (general setting, minor details)<br>
+<br>
+<strong id="witness-and-location-system">Witness and Location System</strong><br>
+<br>
+The drop-in/drop-out system manages witnesses and locations that only activate when mentioned in conversation.<br>
+<br>
+<strong>Entity Detection</strong><br>
+<br>
+The script detects mentions using regex patterns:<br>
+<br>
+<code>const entityMentions = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// WITNESSES<br>
+&nbsp;&nbsp;&nbsp;&nbsp;thomas: /thomas|guard thomas|security guard/i.test(lastMessage),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;maria: /maria|customer marie|rodriguez/i.test(lastMessage),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;sarah: /sarah|manager sarah|sarah williams/i.test(lastMessage),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// LOCATIONS<br>
+&nbsp;&nbsp;&nbsp;&nbsp;first_national: /first national|first bank|downtown bank/i.test(lastMessage),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;river_city: /river city|savings|waterfront bank/i.test(lastMessage),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;metro_community: /metro community|metro bank|community bank/i.test(lastMessage)<br>
+};</code><br>
+<br>
+<strong>Conditional Content</strong><br>
+<br>
+Witnesses and locations can provide different information based on canon count:<br>
+<br>
+<code>scenario: `Thomas Anderson (Security Guard) ${<br>
+&nbsp;&nbsp;&nbsp;&nbsp;canonCount >= 4 <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? 'has provided testimony about suspicious photographer...' <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: 'is stationed at entrance and lobby...'}</code><br>
+<br>
+This allows:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Basic information available immediately upon mention<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Additional details revealed as canon count increases<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Progressive cooperation as investigation advances<br>
+<br>
+<strong id="token-management">Token Management</strong><br>
+<br>
+The token management system prevents context overflow by reducing detail of previously-discovered information.<br>
+<br>
+<strong>Three-Tier Reduction</strong><br>
+<br>
+Each canon entry has three detail levels:<br>
+<br>
+<strong>Full</strong>: Complete information with all details<br>
+<strong>Summary</strong>: Condensed version preserving key points<br>
+<strong>Bullet</strong>: Minimal version with essential information only<br>
+<br>
+<strong>Activation Priority</strong><br>
+<br>
+When token budget is limited, entries are prioritized by:<br>
+<br>
+1. <strong>Importance</strong>: Higher importance (10.0+) gets full version<br>
+2. <strong>Mention Count</strong>: Recently-mentioned entries (2+ mentions) get full version<br>
+3. <strong>Budget</strong>: Remaining budget distributed to lower priority entries<br>
+<br>
+<strong>Budget Allocation</strong><br>
+<br>
+Total token budget is set at 1500 tokens (configurable):<br>
+<br>
+- 60% to high-priority or recently-mentioned entries<br>
+- 30% to medium-priority entries<br>
+- 10% to low-priority entries<br>
+<br>
+<strong>Automatic Reduction</strong><br>
+<br>
+When token budget is exceeded, system automatically:<br>
+<br>
+1. Reduces some entries from Full → Summary<br>
+2. If still over budget, reduces from Summary → Bullet<br>
+3. Preserves top 3 entries at Full version (critical information)<br>
+<br>
+This ensures important information always available in full detail while managing overall token usage.<br>
+<br>
+<strong id="timeline-structure">Timeline Structure</strong><br>
+<br>
+The timeline progresses in hours (0-24 hours), with events triggering at specific hours.<br>
+<br>
+<strong>Hour Progression</strong><br>
+<br>
+Character card must track hour progression:<br>
+<br>
+<strong>Hour:</strong> [X]<br>
+<br>
+<strong>Hour-Based Events</strong><br>
+<br>
+Events trigger at specific hours when canon count requirements are met:<br>
+<br>
+<code>if (currentHour === 5 && canonCount >= 4) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;context.character.scenario += '\n\n[CANON]: Security Guard Thomas Anderson reports...';<br>
+}</code><br>
+<br>
+<strong>Conditional Events</strong><br>
+<br>
+Some events are conditional based on player actions:<br>
+<br>
+<code>if (currentHour === 8 && canonCount >= 7) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const atMetro = lastMessage.includes('metro') || <br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastMessage.includes('community bank');<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (atMetro && canonCount >= 7) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Robbery prevented<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Robbery succeeded<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}</code><br>
+<br>
+<strong>Hour Range Guidelines</strong><br>
+<br>
+Use this structure for hour-based events:<br>
+<br>
+- <strong>Hours 0-3</strong>: Initial investigation phase (bank visits, basic information)<br>
+- <strong>Hours 4-7</strong>: Deep investigation (witness interviews, hidden details)<br>
+- <strong>Hour 8</strong>: Major event (robbery)<br>
+- <strong>Hours 9-23</strong>: Aftermath investigation (evidence, connections)<br>
+- <strong>Hour 24</strong>: Final revelation (complete story)<br>
+<br>
+<strong id="hidden-clue-system">Hidden Clue System</strong><br>
+<br>
+The hidden clue system embeds critical clues within observational details, only revealing them when sufficient context is established.<br>
+<br>
+<strong>Hidden Clue Structure</strong><br>
+<br>
+Hidden clues use this structure:<br>
+<br>
+<code>full: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;scenario: '[CANON]: Basic information. [HIDDEN CLUE: Critical detail that changes understanding]'<br>
+},<br>
+hiddenCondition: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;type: 'either', // 'and' or 'or'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;conditions: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ type: 'hour', value: 5 },      // Requires hour 5+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ type: 'canon', value: 4 }      // OR canon count 4+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+},<br>
+hiddenContent: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;scenario: '[CANON]: Basic information. [HIDDEN CLUE]: Critical detail NOW REVEALED because conditions met]'<br>
+}</code><br>
+<br>
+<strong>Condition Types</strong><br>
+<br>
+- <strong>hour</strong>: Hidden clue reveals when timeline reaches specified hour<br>
+- <strong>canon</strong>: Hidden clue reveals when canon count reaches specified value<br>
+- <strong>message</strong>: Hidden clue reveals when message count reaches specified value<br>
+<br>
+<strong>Condition Logic</strong><br>
+<br>
+- <strong>either</strong>: Any condition being met reveals hidden clue<br>
+- <strong>and</strong>: All conditions must be met to reveal hidden clue<br>
+<br>
+<strong>Hidden Clue Integration</strong><br>
+<br>
+In the example scenario:<br>
+<br>
+- Hour 1 First National details mention photographer focused on cameras (hidden clue)<br>
+- Hour 5 Thomas testimony confirms photographer focused on cameras (hidden clue NOW revealed)<br>
+- This creates "aha!" moments when pieces connect<br>
+<br>
+<strong id="conditional-events">Conditional Events</strong><br>
+<br>
+Conditional events allow story branching based on player actions.<br>
+<br>
+<strong>Implementation Pattern</strong><br>
+<br>
+<code>if (currentHour === 8 && canonCount >= 7) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// Check player location/action<br>
+&nbsp;&nbsp;&nbsp;&nbsp;const playerAtMetro = lastMessage.includes('metro') ||<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lastMessage.includes('community bank');<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if (playerAtMetro) {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Success branch<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.character.scenario += '\n\n[CANON]: Robbery attempt thwarted...';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Failure branch<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;context.character.scenario += '\n\n[CANON]: Robbery executed...';<br>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+}</code><br>
+<br>
+<strong>Branching Guidelines</strong><br>
+<br>
+- <strong>Player Choice</strong>: Branch based on player's action (location visited, decision made)<br>
+- <strong>Investigation Quality</strong>: Branch based on how thoroughly player investigated (canon count)<br>
+- <strong>Timing</strong>: Branch based on when player acted (hour progression)<br>
+<br>
+<strong>Narrative Impact</strong><br>
+<br>
+Conditional branches should:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Create significantly different outcomes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Lead to different information becoming available<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Provide different player experiences<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Ultimately converge to complete story understanding<br>
+<br>
+<strong id="character-card-requirements">Character Card Requirements</strong><br>
+<br>
+<strong>Essential Stats</strong><br>
+<br>
+Character cards MUST track these statistics:<br>
+<br>
+<strong>Canon Count:</strong> [X]%<br>
+<strong>Hour:</strong> [X]<br>
+<br>
+<strong>Canon Count</strong>: Cumulative count of canonical entries unlocked (0-100%)<br>
+<strong>Hour</strong>: Current timeline progression (0-24 hours)<br>
+<br>
+<strong>Status Block Format</strong><br>
+<br>
+Every AI response MUST end with a status block in this format:<br>
+<br>
+<strong>=== INVESTIGATION STATUS ===</strong><br>
+<strong>Canon Count:</strong> [X]%<br>
+<strong>Current Hour:</strong> [X]/24<br>
+<strong>Investigation Phase:</strong> [Phase description]<br>
+<br>
+<strong>Progressive Disclosure Instructions</strong><br>
+<br>
+Character card MUST include:<br>
+<br>
+{{char}} is working on a progressive investigation where information is revealed over time.<br>
+<br>
+<strong>CANONICAL INFORMATION PROTOCOL</strong><br>
+<br>
+All canonical information about this scenario is provided through a progressive disclosure system. Critical details (clues, character motivations, plot revelations) are introduced systematically as the investigation advances. Information not yet provided does not exist in the current story context.<br>
+<br>
+<strong>CANONICAL INFORMATION FORMAT</strong><br>
+<br>
+When the Script injects canonical information, it uses this format:<br>
+<br>
+[CANON]: [Information content]<br>
+<br>
+This format indicates official, verified information that is now part of the story reality. All other context from this message forward must align with these canon facts.<br>
+<br>
+<strong>STRICT CONSTRAINTS</strong><br>
+<br>
+1. DO NOT assume motives, relationships, or plot developments not yet provided<br>
+2. DO NOT create convenient connections or coincidences to advance the story<br>
+3. DO NOT foreshadow or hint at revelations not yet disclosed<br>
+4. DO NOT have characters know things they haven't learned through provided context<br>
+<br>
+5. When information is missing:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- State uncertainty ("The motive isn't clear yet")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Request investigation ("More clues are needed")<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Maintain ambiguity ("The evidence points in conflicting directions")<br>
+<br>
+6. What you CAN do:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Respond naturally to information that HAS been provided<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Ask questions that would logically arise from current knowledge<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Describe settings and atmosphere using established context<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Have characters react to revealed information appropriately<br>
+<br>
+<strong>CANON COUNT TRACKING</strong><br>
+<br>
+The investigation tracks cumulative canonical information unlocked. As Canon Count increases:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- New witnesses become more cooperative<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Additional details become available in previously-visited locations<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- Critical clues connect and reveal deeper information<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- The investigation advances toward complete understanding<br>
+<br>
+<strong>HOUR PROGRESSION</strong><br>
+<br>
+The investigation operates on a 24-hour timeline. Each hour may bring new information, events, or revelations. The investigation begins at Hour 0 and must conclude or reach critical points by Hour 24.<br>
+<br>
+<strong>INVESTIGATION GUIDELINES</strong><br>
+<br>
+- When [CANON]: [Content] appears, integrate it completely into narrative<br>
+- All future references must acknowledge established canon facts<br>
+- Do not contradict or modify canonical information<br>
+- Recognize that missing information is intentional - don't fill gaps with speculation<br>
+- Maintain mystery and investigation pace - don't rush to conclusions without sufficient evidence<br>
+<br>
+<strong id="example-scenario">Example Scenario</strong><br>
+<br>
+The template includes a complete example scenario demonstrating all features:<br>
+<br>
+<strong>Scenario Overview</strong><br>
+<br>
+<strong>Setting</strong>: Modern city with three banks<br>
+<strong>Event</strong>: Upcoming bank robbery at Hour 8 (2 PM)<br>
+<strong>Player Role</strong>: Investigator who received anonymous tip<br>
+<strong>Goal</strong>: Identify target bank and prevent robbery<br>
+<br>
+<strong>Banks</strong><br>
+<br>
+1. <strong>First National Bank</strong>: High-tech security, NOT target (red herring)<br>
+2. <strong>River City Savings</strong>: Older bank with vulnerabilities, NOT target (misdirection)<br>
+3. <strong>Metro Community Bank</strong>: Small neighborhood bank, THE TARGET (vulnerable)<br>
+<br>
+<strong>Witnesses</strong><br>
+<br>
+1. <strong>Thomas Anderson</strong> (Security Guard at First National): Observed photographer focused on security cameras (hidden clue)<br>
+2. <strong>Maria Rodriguez</strong> (Customer at River City): Reported watchers in silver sedan (timing clue)<br>
+3. <strong>Sarah Williams</strong> (Manager at Metro Community): Nervous behavior, providing inside help (critical)<br>
+<br>
+<strong>Timeline (0-24 Hours)</strong><br>
+<br>
+- <strong>Hour 0</strong>: Initial anonymous tip received<br>
+- <strong>Hours 1-3</strong>: Bank security assessments (observational clues)<br>
+- <strong>Hours 4-7</strong>: Witness interviews (detailed clues, hidden details)<br>
+- <strong>Hour 8</strong>: Robbery event (conditional: success or prevention based on player action)<br>
+- <strong>Hours 9-23</strong>: Investigation aftermath (background, connections, mastermind)<br>
+- <strong>Hour 24</strong>: Final revelation (complete story)<br>
+<br>
+<strong>Hidden Clues Example</strong><br>
+<br>
+<strong>Hidden in Hour 1 (First National)</strong>: "Photographer focused on security cameras" (not just exterior shots)<br>
+<strong>Revealed at Hour 5 (Thomas testimony)</strong>: Confirms photographer was checking security bypass methods<br>
+<strong>Impact</strong>: Crew was planning how to defeat security systems<br>
+<br>
+<strong>Mastermind Twist</strong><br>
+<br>
+<strong>Hour 21 reveals</strong>: Marcus Thorne (First National CEO) orchestrated everything to benefit from acquiring Metro Community Bank at reduced price. First National appeared as red herring but was actually the mastermind behind everything.<br>
+<br>
+<strong id="best-practices">Best Practices</strong><br>
+<br>
+<strong>Canon Database Design</strong><br>
+<br>
+- Start with foundation: Early hours provide basic setting and context<br>
+- Build progressively: Each hour adds layer of complexity<br>
+- Create connections: Later hours reveal why earlier information was significant<br>
+- Use hidden clues: Embed critical insights within observational details<br>
+- Plan thresholds: Carefully choose minMessages, minHour, minCanon for each entry<br>
+<br>
+<strong>Importance Assignment</strong><br>
+<br>
+- <strong>Critical information</strong>: 11.0 (always full detail)<br>
+- <strong>Key revelations</strong>: 10.0 (resistant to token reduction)<br>
+- <strong>Important details</strong>: 9.0 (high priority)<br>
+- <strong>Useful context</strong>: 8.0-8.5 (medium priority)<br>
+- <strong>Background</strong>: 7.0 and below (low priority)<br>
+<br>
+<strong>Witness/Location Design</strong><br>
+<br>
+- <strong>Basic info available immediately</strong>: When mentioned, provide foundational information<br>
+- <strong>Progressive cooperation</strong>: More details available as canon count increases<br>
+- <strong>Conditional content</strong>: Different responses based on investigation phase<br>
+- <strong>Natural dialogue</strong>: Example dialogs showing personality and cooperation level<br>
+<br>
+<strong>Timeline Pacing</strong><br>
+<br>
+- <strong>Initial phase (0-3)</strong>: Provide enough to engage but not overwhelm<br>
+- <strong>Investigation phase (4-7)</strong>: Most information should unlock here<br>
+- <strong>Event phase (8)</strong>: Major branching point<br>
+- <strong>Aftermath phase (9-23)</strong>: Build toward complete understanding<br>
+- <strong>Revelation (24)</strong>: Tie everything together with complete picture<br>
+<br>
+<strong>Token Management</strong><br>
+<br>
+- <strong>Importance first</strong>: Critical information always full detail<br>
+- <strong>Recent context</strong>: Currently-investigated areas full detail<br>
+- <strong>Past reduction</strong>: Previously-discovered information summarized<br>
+- <strong>Background</strong>: Not-currently-active areas minimal detail<br>
+<br>
+<strong>Conditional Events</strong><br>
+<br>
+- <strong>Meaningful choices</strong>: Player actions should significantly impact outcome<br>
+- <strong>Fair branching</strong>: Both paths should lead to complete story (different routes)<br>
+- <strong>Clear criteria</strong>: Player should understand what affects branches<br>
+- <strong>Reconvergence</strong>: Paths should ultimately lead to complete understanding<br>
+<br>
+<strong id="troubleshooting">Troubleshooting</strong><br>
+<br>
+<strong>Common Issues</strong><br>
+<br>
+<strong>Too Much Canon Activating at Once</strong><br>
+<br>
+- Increase minMessages values for later entries<br>
+- Increase minCanon requirements to force progressive discovery<br>
+- Increase minHour requirements to space out timeline<br>
+- Check that multiple entries don't share too many keywords<br>
+<br>
+<strong>Important Canon Not Activating</strong><br>
+<br>
+- Verify all three thresholds are being met (messages, hour, canon)<br>
+- Check that keywords are actually being mentioned in conversation<br>
+- Ensure Canon Count stat is advancing properly in character card<br>
+- Verify Hour stat is progressing in character card<br>
+- Enable DEBUG_MODE to see activation state<br>
+<br>
+<strong>Timeline Events Not Firing</strong><br>
+<br>
+- Confirm Hour stat is advancing in character card<br>
+- Check that TIMELINE_EVENTS feature is enabled<br>
+- Verify minHour values are appropriate for your timeline<br>
+- Ensure conditional events have proper conditions<br>
+<br>
+<strong>Witnesses/Locations Not Activating</strong><br>
+<br>
+- Check regex patterns in entityMentions match natural conversation<br>
+- Verify that character names/locations are being mentioned<br>
+- Ensure DROP_IN_OUT feature is enabled<br>
+- Test by mentioning entity directly in conversation<br>
+<br>
+<strong>Hidden Clues Not Revealing</strong><br>
+<br>
+- Verify HIDDEN_CLUES feature is enabled<br>
+- Check that hiddenCondition thresholds are being met<br>
+- Ensure condition type (hour, canon, message) is appropriate<br>
+- Confirm that hiddenContent version is being used when conditions met<br>
+<br>
+<strong>Token Budget Issues</strong><br>
+<br>
+- Reduce MAX_TOKENS if still experiencing overflow<br>
+- Check that CONTEXT_AWARE_BUDGETING is enabled<br>
+- Verify importance values are appropriate (critical info should be 10.0+)<br>
+- Enable DEBUG_MODE to see token usage and reduction<br>
+<br>
+<strong>Debugging Mode</strong><br>
+<br>
+Enable debugging to see system state:<br>
+<br>
+<code>const FEATURES = {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// ... other features<br>
+&nbsp;&nbsp;&nbsp;&nbsp;DEBUG_MODE: true<br>
+};</code><br>
+<br>
+Debug output includes:<br>
+<br>
+- How many canon entries activated<br>
+- How many witnesses/locations activated<br>
+- Current hour and canon count<br>
+- Message count<br>
+- Token usage (if context-aware budgeting enabled)<br>
+- Triggered keywords (for cascading)<br>
+<br>
+<strong>Testing Approach</strong><br>
+<br>
+1. <strong>Test activation</strong>: Mention different entities to verify drop-in/out system<br>
+2. <strong>Test progression</strong>: Advance through hours to verify timeline events<br>
+3. <strong>Test thresholds</strong>: Verify canon entries unlock only when all three thresholds met<br>
+4. <strong>Test branching</strong>: Test different player actions at conditional events<br>
+5. <strong>Test token management</strong>: Verify reduction happens when many entries activate<br>
+6. <strong>Test hidden clues</strong>: Verify hidden content reveals when conditions met<br>
+<br>
+<strong>Feature Comparison</strong><br>
+<br>
+<strong>Feature</strong> - <strong>TimeDelay</strong> | <strong>Complex</strong> | <strong>Adaptive</strong><br>
+Message Thresholds - Yes | Yes | No<br>
+Timeline Progression - Yes (hours 0-24) | Yes (days) | No<br>
+Canon Count Tracking - Yes (minCanon) | No (stat tracking only) | No<br>
+Drop-In/Out System - Yes (witnesses/locations) | No | No<br>
+Context-Aware Budgeting - Yes (Full/Summary/Bullet) | No | Yes (Full/Summary/Bullet)<br>
+Hidden Clue System - Yes (conditional revelation) | No | No<br>
+Conditional Events - Yes (player action branching) | No | No<br>
+Feature Toggles - Yes | Yes | No<br>
+Debug Mode - Yes | Yes | No<br>
+<br>
+<strong>Version History</strong><br>
+<br>
+<strong>v1.0 - Initial Release</strong><br>
+<br>
+- Full progressive disclosure system<br>
+- Hour-based timeline (0-24 hours)<br>
+- Canon count tracking<br>
+- Drop-in/drop-out witness/location system<br>
+- Context-aware token management<br>
+- Hidden clue embedding<br>
+- Conditional events system<br>
+- Feature toggle system<br>
+- Complete example scenario (bank robbery)<br>
+<br>
+<br>
+<strong>Created for the Janitor AI Scripts community. Feel free to modify, share, and improve upon this system.</strong><br>
+<br>
+<strong>This template demonstrates a comprehensive approach to progressive disclosure, combining multiple complementary systems to create engaging mystery scenarios that reveal information at the right pace.</strong>
