@@ -39,7 +39,7 @@ Drop-in/drop-out character management that dynamically includes or excludes char
 ## Copy Directly on JanitorAI
 
 All templates are available on my JanitorAI profile, ready to copy into your own Scripts:
-[https://janitorai.com/profiles/0f618e4a-4d83-49da-969b-aba188761259_profile-of-tydorius](https://janitorai.com/profiles/0f618e4a-4d83-49da-969b-aba188761259_profile-of-tydorius)
+[@Tydorius](https://janitorai.com/profiles/0f618e4a-4d83-49da-969b-aba188761259_profile-of-tydorius)
 
 ## Support
 
