@@ -2,7 +2,31 @@
 // Combines drop-in/drop-out character management with adaptive detail levels
 // Each character category scales between full/limited/summary based on token budget
 // Includes example 3-version and progressive sentence categories for customization
-// Compatible with JanitorAI Scripts API (Nine API v1)
+
+// SCENARIO INSTRUCTION EXAMPLE:
+// To ensure your bot does not forget your characters exist, I recommend
+// putting an instruction in your SCENARIO (Not personality) setting. See
+// the following example. You can, of course, also instruct your bot to
+// write for characters off screen or take other actions as needed, but
+// include some instruction reminding the LLM that if characters are in
+// different locations, then their actions are unknown to eachother.
+
+/*
+
+CHARACTER ARRIVAL INSTRUCTIONS:
+Review previous messages and context for any of the following names:
+character1
+character2
+character3
+character4
+
+Determine if the identified character(s) have left the scene. If they have left the scene, evaluate how much time has passed and whether they have a reason to return to the scene. If sufficient time has passed in-world AND the character has a reason to return to the scene, you may re-introduce them to the scene. Remember that they will not be aware of what has happened in their absence.
+
+Example: character1 left the scene so they could go to work. Only ten minutes have passed. character1 should NOT be returning because a work shift is typically 4-8 hours long.
+
+Example: character2 left the scene to use the restroom. Only ten minutes have passed. character2 may return to the scene as it does not take that long to use the restroom.
+
+*/
 
 // === CONFIGURATION ===
 const CONFIG = {
@@ -395,9 +419,10 @@ const lastMessages = context.chat.last_messages || [];
 const messageCount = context.chat.message_count || 0;
 
 const scanDepth = Math.min(CONFIG.MENTION_SCAN_DEPTH, lastMessages.length);
-const scanText = scanDepth > 0 && lastMessages.length > 0
+const historyText = scanDepth > 0 && lastMessages.length > 0
     ? lastMessages.slice(-scanDepth).join(' ').toLowerCase()
-    : lastMessage;
+    : '';
+const scanText = lastMessage + ' ' + historyText;
 
 // === ACTIVATION ENGINE ===
 
