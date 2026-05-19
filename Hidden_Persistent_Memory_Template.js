@@ -1,4 +1,20 @@
-"use worker";
+"use worker"; // This may not work. Added based on AI suggestion.
+
+// This is a very large script. It is intended to be used as an example,
+// so that it can be broken up into other Scripts.
+
+// Because it is an example, it has not been fully tested. The use of
+// zero-width characters was tested, as well as the ability for them to
+// persist in last_messages.
+
+// Much of the logic here has been taken from my previous Scripts and
+// adapted using an LLM to make it utilize the zero-width method for
+// data retention.
+
+// Mileage will vary based upon the model. If your audience is non-proxy
+// users you will want to be careful about how much context you feed back
+// to the model as you will need to ensure you have space for both the
+// Script specific instructions AND the actual content.
 
 /**
  * JANITOR AI HIDDEN PERSISTENT MEMORY TEMPLATE
