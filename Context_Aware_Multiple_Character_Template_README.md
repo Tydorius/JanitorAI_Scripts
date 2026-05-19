@@ -16,6 +16,7 @@ Drop-in/drop-out character management with adaptive detail levels. Characters ac
 - [Setup Instructions](#setup-instructions)
 - [Adding Characters](#adding-characters)
 - [Adding Custom Categories](#adding-custom-categories)
+- [Relationships](#relationships)
 - [Integration with Other Templates](#integration-with-other-templates)
 - [Troubleshooting](#troubleshooting)
 
@@ -38,8 +39,9 @@ The result is a system where mentioning a character's name drops them into the s
 3. **Sort** activated characters by mention frequency, then importance
 4. **Budget** each category independently: higher-priority characters keep full detail, lower-priority characters reduce to limited or summary
 5. **Build** progressive sentences round-robin across activated characters within budget
-6. **Inject** instruction strings (one per activated character) into scenario
-7. **Apply** all content to the appropriate context fields
+6. **Match** relationships between activated character pairs
+7. **Inject** instruction strings (one per activated character) into scenario
+8. **Apply** all content to the appropriate context fields
 
 ## Configuration
 
@@ -433,6 +435,58 @@ const PROGRESSIVE_CATEGORIES = ['exampleProgressive', 'fightingStyle'];
 
 5. Progressive results are applied to output automatically. No manual output assembly is needed.
 
+## Relationships
+
+The `relationships` array stores pairwise relationship descriptions between characters. A relationship only activates when **both** characters in the pair are mentioned during the scan depth. Relationships are not bidirectional — you only need one entry per pair.
+
+### Structure
+
+```javascript
+const relationships = [
+    {
+        characters: ['nadia', 'corvin'],
+        text: ', Nadia trusts Corvin despite his reclusive nature'
+    },
+    {
+        characters: ['nadia', 'template'],
+        text: ", Nadia is cautiously curious about Template"
+    }
+];
+```
+
+### Field Reference
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `characters` | string[] | Two character `id` values. Order does not matter. Must match `id` fields in the `characters` array. |
+| `text` | string | Relationship description appended to personality. Should start with a comma (it appends to existing personality text). |
+
+### Activation Rules
+
+- Both characters in a pair must be detected during the mention scan for the relationship to activate
+- Relationships activate independently of budget — they are appended after all category budgeting
+- Output is wrapped in `<ACTIVE RELATIONSHIPS>...<END ACTIVE RELATIONSHIPS>` tags
+
+### Pair Count
+
+With N characters, you need `N * (N-1) / 2` entries for full pairwise coverage:
+
+| Characters | Pairs |
+|-----------|-------|
+| 3 | 3 |
+| 5 | 10 |
+| 8 | 28 |
+| 10 | 45 |
+
+You do not need an entry for every possible pair. Only define relationships that are narratively important. Missing pairs simply produce no output when co-activated.
+
+### Writing Guidelines
+
+- Text should start with a comma (appending to personality)
+- Describe the dynamic from both sides in one sentence
+- Keep entries concise — this text always activates at full detail with no degradation
+- Focus on dynamics the AI needs to portray accurately when both characters are in a scene
+
 ## Integration with Other Templates
 
 ### With Persistent Memory Flags
@@ -486,6 +540,13 @@ Use time-based progression alongside character management to control when charac
 - Ensure the category key is in `CATEGORY_TARGETS` with a valid target field
 - Ensure the category has an entry in `CONFIG.CATEGORIES` with budget, priority, includeInGlobal, and limitByGlobal
 - Check for typos between the character object key and the category configuration
+
+### Relationships Not Appearing
+
+- Verify both characters in the pair are being activated (check debug output)
+- Ensure the `characters` array contains valid `id` values matching the character database exactly
+- Remember both characters must be mentioned within the scan depth window
+- Check that the relationship entry exists in the `relationships` array
 
 ### Syntax Errors After Editing
 

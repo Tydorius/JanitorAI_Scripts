@@ -412,6 +412,28 @@ const PROGRESSIVE_CATEGORIES = [
     'exampleProgressive'
 ];
 
+// === RELATIONSHIP DATABASE ===
+// Each entry defines a one-directional relationship between two characters.
+// Only activates when BOTH characters are detected during the mention scan.
+// Order does not matter: ['a', 'b'] covers both directions.
+// With N characters, you need (N*(N-1))/ 2 entries for full coverage.
+// Remove the examples below and replace with your own character IDs.
+
+const relationships = [
+    {
+        characters: ['nadia', 'corvin'],
+        text: ', Nadia trusts Corvin despite his reclusive nature and often drags him into social situations he would otherwise avoid'
+    },
+    {
+        characters: ['nadia', 'template'],
+        text: ", Nadia is cautiously curious about Template but hasn't yet decided whether to trust them"
+    },
+    {
+        characters: ['corvin', 'template'],
+        text: ', Corvin finds Template intellectually intriguing and occasionally shares obscure knowledge with them'
+    }
+];
+
 // === CORE SYSTEM ACCESS ===
 
 const lastMessage = context.chat.last_message ? context.chat.last_message.toLowerCase() : '';
@@ -623,7 +645,7 @@ activated.forEach(item => {
     const instruction = CONFIG.INSTRUCTION_STRING.replace(/CHAR_PLACEHOLDER/g, char.displayName);
     output.scenario += '\n\n' + instruction;
 
-    // 3-version categories
+    // 3-version categories for this character
     THREE_VERSION_CATEGORIES.forEach(category => {
         const level = item.detailLevels[category];
         const content = char[category];
@@ -634,18 +656,40 @@ activated.forEach(item => {
             output[target] += '\n\n' + content[level];
         }
     });
-});
 
-// Progressive sentences
-PROGRESSIVE_CATEGORIES.forEach(cat => {
-    (progressiveResultsMap[cat] || []).forEach(sentence => {
-        if (sentence.target === 'personality') {
-            output.personality += sentence.text;
-        } else {
-            output.scenario += sentence.text;
-        }
+    // Progressive sentences for this character
+    PROGRESSIVE_CATEGORIES.forEach(cat => {
+        (progressiveResultsMap[cat] || [])
+            .filter(s => s.characterId === char.id)
+            .forEach(sentence => {
+                if (sentence.target === 'personality') {
+                    output.personality += sentence.text;
+                } else {
+                    output.scenario += sentence.text;
+                }
+            });
     });
 });
+
+// === RELATIONSHIPS ===
+// Activate relationships where both characters are present in the scene.
+
+const activatedIds = new Set(activated.map(item => item.character.id));
+const activatedRelationships = [];
+
+relationships.forEach(rel => {
+    if (rel.characters.every(id => activatedIds.has(id))) {
+        activatedRelationships.push(rel);
+    }
+});
+
+if (activatedRelationships.length > 0) {
+    output.personality += '\n\n<ACTIVE RELATIONSHIPS>';
+    activatedRelationships.forEach(rel => {
+        output.personality += rel.text;
+    });
+    output.personality += ' <END ACTIVE RELATIONSHIPS>';
+}
 
 // === FINAL CONTEXT APPLICATION ===
 
@@ -680,6 +724,9 @@ if (CONFIG.DEBUG) {
         .filter(c => CONFIG.CATEGORIES[c].includeInGlobal)
         .reduce((s, c) => s + (categoryTokens[c] || 0), 0);
     debugInfo.push(`Global: ${globalUsed}/${CONFIG.GLOBAL_BUDGET}`);
+
+    const relNames = activatedRelationships.map(r => r.characters.join('<->'));
+    debugInfo.push(`Relationships: ${relNames.length > 0 ? relNames.join(', ') : 'none'}`);
 
     context.character.scenario += ' ' + debugInfo.join(' | ');
 }
