@@ -15,7 +15,6 @@
  * lore database in Section 5 with your own content.
  *
  * Requires: Context_Control_Template.js running in the same session.
- * Compatible with Nine API v1
  */
 
 // === SECTION 1: CONFIGURATION ===
