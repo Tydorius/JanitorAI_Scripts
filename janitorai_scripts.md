@@ -589,3 +589,6 @@ Community reference for ES6+ in Scripts:
 
 Tydorius JanitorAI Scripts:
 - https://www.github.com/Tydorius/JanitorAI_Scripts/
+
+Original skill:
+https://lobehub.com/it/skills/neolaw84-janitor_ai_engine-janitor-ai-script-skill
