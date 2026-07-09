@@ -160,10 +160,7 @@ Utility script that logs available properties on the `context` object. Useful fo
 
 ## Copy Directly on JanitorAI
 
-All templates are available on my JanitorAI profile, ready to copy into your own Scripts.
-
-
-[@Tydorius](https://janitorai.com/profiles/0f618e4a-4d83-49da-969b-aba188761259_profile-of-tydorius)
+Templates are no longer available on JanitorAI due to the blanket no-warning non-appealable ban on my account.
 
 ## Support
 
