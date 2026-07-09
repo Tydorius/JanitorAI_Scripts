@@ -8,7 +8,7 @@ A collection of Script templates for JanitorAI's enhanced lorebook system. Each 
 
 JanitorAI permanently banned my account with no warning for 'Advertising and Spam' - so unfortunately I will no longer be contributing to the community.
 
-I attempted an appeal and it was dismissed and stonewalled with the following:
+I attempted an appeal and it was dismissed and stonewalled with the following from Theo:
 
 ---
 Hello,
