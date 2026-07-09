@@ -21,11 +21,13 @@ Thank you for your understanding.
 
 Regards,
 Janitorai Customer Support
+
 ---
 
 The appeal itself is below:
 
 ---
+
 I attempted to send this via the web form but it caps at 2,000 characters.
 
 Good morning,
@@ -101,6 +103,7 @@ Direct financial solicitation is not allowed. Content that pressures, demands, o
 
 However, neutral and informational references to commissions, tips, or voluntary support are permitted within profiles or character bios ("Commissions are open," "You can tip here"). These references must remain optional, non-coercive, and non-manipulative.
 ```
+
 ---
 
 In spite of the fact that:
